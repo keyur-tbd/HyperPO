@@ -13,6 +13,7 @@ concurrency:
 
 permissions:
   contents: read
+  actions: write  # for the keep-alive step below
 
 jobs:
   sync:
@@ -43,3 +44,11 @@ jobs:
           EXTRACTION_ENGINE: local
           PYTHONUNBUFFERED: "1"
         run: python app.py --once
+
+      # GitHub disables scheduled workflows in public repos after 60 days without repo activity.
+      # Re-enabling the workflow via the API on every run keeps the schedule alive without commits.
+      - name: Keep schedule alive
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/hyperpo.yml/enable"
