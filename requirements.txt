@@ -1,0 +1,17 @@
+# Google APIs
+google-api-python-client>=2.193
+google-auth-oauthlib>=1.3
+google-auth>=2.49
+httplib2>=0.22
+
+# LlamaCloud Extract v2 — only needed when EXTRACTION_ENGINE=llama
+llama-cloud>=2.2
+httpx>=0.28
+
+# PDF parsing — REQUIRED: the default local extraction engine and SKU-count validation use it.
+# Without it, get_expected_sku_count() returns 0 and every extraction passes unchecked.
+pdfplumber>=0.11
+
+# Scheduling + local secrets
+schedule>=1.2
+python-dotenv>=1.0

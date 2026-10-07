@@ -1,0 +1,45 @@
+name: HyperPO sync
+
+on:
+  schedule:
+    # Every 3 hours (UTC). GitHub may start scheduled runs a few minutes late.
+    - cron: "0 */3 * * *"
+  workflow_dispatch: {}
+
+# Never let two runs overlap — both would read the sheet before either writes and append duplicates.
+concurrency:
+  group: hyperpo-sync
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Restore Google token
+        env:
+          GOOGLE_TOKEN_JSON: ${{ secrets.GOOGLE_TOKEN_JSON }}
+        run: |
+          if [ -z "$GOOGLE_TOKEN_JSON" ]; then
+            echo "::error::Repository secret GOOGLE_TOKEN_JSON is not set"; exit 1
+          fi
+          printf '%s' "$GOOGLE_TOKEN_JSON" > token.json
+
+      - name: Run workflow once
+        env:
+          EXTRACTION_ENGINE: local
+          PYTHONUNBUFFERED: "1"
+        run: python app.py --once
